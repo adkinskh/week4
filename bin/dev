@@ -1,0 +1,2 @@
+require('dotenv/config')
+require(./../week4/auth_jwt')

@@ -8,10 +8,14 @@ db = require('./db')(); //global hack
 var jwt = require('jsonwebtoken');
 
 var app = express();
+
+//var environment = process.env.NODE_ENV
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(passport.initialize());
+
 
 var router = express.Router();
 
@@ -88,10 +92,53 @@ router.post('/signin', function(req, res) {
             else {
                 res.status(401).send({success: false, msg: 'Authentication failed. Wrong password.'});
             }
-        };
+        }
 });
 
+router.route('/movies')
+    .get( authJwtController.isAuthenticated, function (req, res) {
+        var movie = db.find(getJSONObject(req).body.query)
+        if (movie === getJSONObject(req).body.query) {
+            return res.json({
+                status: 200, message: "GET movies",
+                headers: req.header, query: getJSONObject(req).body.query, env: process.env.UNIQUE_KEY
+            })
+        }
+        else {
+            return res.json({
+                status: 200, message: "GET movies", msg: 'movie not found but request was successful',
+                headers: req.header, query: getJSONObject(req).body.query, env: process.env.UNIQUE_KEY
+            })
+        }
+
+    })
+    .post(authJwtController.isAuthenticated,function (req, res) {
+        return res.json({
+            status: 200, message: "POST movies", msg: "movie was received but cannot be saved",
+            headers: req.header, query: getJSONObject(req).body.query, env: process.env.UNIQUE_KEY
+        })
+        }
+    )
+    .put( authJwtController.isAuthenticated, function (req, res) {
+        return res.json({
+            status: 200, message: "PUT movies", msg: "movie was received but cannot be updated",
+            headers: req.header, query: getJSONObject(req).body.query, env: process.env.UNIQUE_KEY
+        })
+        }
+    )
+    .delete( authController.isAuthenticated, function (req,res) {
+        return res.json({
+            status: 200, message: "PUT movies", msg: "movie was received but cannot be deleted",
+            headers: req.header, query: getJSONObject(req).body.query, env: process.env.UNIQUE_KEY
+        })
+    });
+
+
 app.use('/', router);
+app.use(function(req, res){
+    res.status(404).send({success: false, msg: 'http method not supported'});
+});
+
 app.listen(process.env.PORT || 8080);
 
 module.exports = app; // for testing
